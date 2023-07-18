@@ -7,9 +7,9 @@
 #SDL_VERSION = 1.2.15
 #SDL_SOURCE = SDL-$(SDL_VERSION).tar.gz
 #SDL_SITE = http://www.libsdl.org/release
-SDL_VERSION = 1d23399e67582c503e53424c86247fc8f39339a5
+SDL_VERSION = v1.2-rg-nano
 SDL_SITE_METHOD = git
-SDL_SITE = https://github.com/FunKey-Project/SDL-1.2.git
+SDL_SITE = https://github.com/DrUm78/SDL-1.2.git
 SDL_LICENSE = LGPL-2.1+
 SDL_LICENSE_FILES = COPYING
 SDL_INSTALL_STAGING = YES
