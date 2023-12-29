@@ -5,8 +5,8 @@
 ################################################################################
 
 OPENAL_VERSION = 1.8.466
-OPENAL_SOURCE = openal-soft-$(OPENAL_VERSION).tar.bz2
-OPENAL_SITE = https://openal-soft.org/openal-releases
+OPENAL_SOURCE = openal-soft-$(OPENAL_VERSION).tar.gz
+OPENAL_SITE = https://github.com/kcat/openal-soft/archive/refs/tags
 OPENAL_LICENSE = LGPL-2.0+
 OPENAL_LICENSE_FILES = COPYING
 OPENAL_INSTALL_STAGING = YES
