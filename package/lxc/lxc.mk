@@ -4,12 +4,16 @@
 #
 ################################################################################
 
-LXC_VERSION = 4.0.5
+LXC_VERSION = 4.0.12
 LXC_SITE = https://linuxcontainers.org/downloads/lxc
 LXC_LICENSE = GPL-2.0 (some tools), LGPL-2.1+
 LXC_LICENSE_FILES = LICENSE.GPL2 LICENSE.LGPL2.1
+LXC_CPE_ID_VENDOR = linuxcontainers
 LXC_DEPENDENCIES = host-pkgconf
 LXC_INSTALL_STAGING = YES
+
+# 0005-Patching-an-incoming-CVE-CVE-2022-47952.patch
+LXC_IGNORE_CVES += CVE-2022-47952
 
 LXC_CONF_OPTS = \
 	--disable-apparmor \
@@ -41,6 +45,20 @@ LXC_CONF_OPTS += --enable-selinux
 LXC_DEPENDENCIES += libselinux
 else
 LXC_CONF_OPTS += --disable-selinux
+endif
+
+ifeq ($(BR2_PACKAGE_LIBURING),y)
+LXC_CONF_OPTS += --enable-liburing
+LXC_DEPENDENCIES += liburing
+else
+LXC_CONF_OPTS += --disable-liburing
+endif
+
+ifeq ($(BR2_PACKAGE_LINUX_PAM),y)
+LXC_CONF_OPTS += --enable-pam
+LXC_DEPENDENCIES += linux-pam
+else
+LXC_CONF_OPTS += --disable-pam
 endif
 
 ifeq ($(BR2_PACKAGE_OPENSSL),y)

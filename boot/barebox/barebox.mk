@@ -28,7 +28,7 @@ $(1)_SITE_METHOD = git
 # Override the default value of _SOURCE to 'barebox-*' so that it is not
 # downloaded a second time for barebox-aux; also alows avoiding the hash
 # check:
-$(1)_SOURCE = barebox-$$($(1)_VERSION).tar.gz
+$(1)_SOURCE = barebox-$$($(1)_VERSION)$$(BR_FMT_VERSION_git).tar.gz
 else
 # Handle stable official Barebox versions
 $(1)_SOURCE = barebox-$$($(1)_VERSION).tar.bz2
@@ -59,20 +59,27 @@ ifneq ($$(BR2_TARGET_$(1)_BAREBOXENV),y)
 $(1)_INSTALL_TARGET = NO
 endif
 
-ifeq ($$(KERNEL_ARCH),i386)
+ifeq ($$(NORMALIZED_ARCH),i386)
 $(1)_ARCH = x86
-else ifeq ($$(KERNEL_ARCH),x86_64)
+else ifeq ($$(NORMALIZED_ARCH),x86_64)
 $(1)_ARCH = x86
-else ifeq ($$(KERNEL_ARCH),powerpc)
+else ifeq ($$(NORMALIZED_ARCH),powerpc)
 $(1)_ARCH = ppc
-else ifeq ($$(KERNEL_ARCH),arm64)
+else ifeq ($$(NORMALIZED_ARCH),arm64)
 $(1)_ARCH = arm
 else
-$(1)_ARCH = $$(KERNEL_ARCH)
+$(1)_ARCH = $$(NORMALIZED_ARCH)
 endif
 
 $(1)_MAKE_FLAGS = ARCH=$$($(1)_ARCH) CROSS_COMPILE="$$(TARGET_CROSS)"
 $(1)_MAKE_ENV = $$(TARGET_MAKE_ENV)
+
+ifeq ($$(BR2_REPRODUCIBLE),y)
+$(1)_MAKE_ENV += \
+	KBUILD_BUILD_USER=buildroot \
+	KBUILD_BUILD_HOST=buildroot \
+	KBUILD_BUILD_TIMESTAMP="$$(shell LC_ALL=C TZ='UTC' date -d @$(SOURCE_DATE_EPOCH))"
+endif
 
 ifeq ($$(BR2_TARGET_$(1)_USE_DEFCONFIG),y)
 $(1)_KCONFIG_DEFCONFIG = $$(call qstrip,$$(BR2_TARGET_$(1)_BOARD_DEFCONFIG))_defconfig
@@ -121,7 +128,7 @@ endef
 
 define $(1)_BUILD_CMDS
 	$$($(1)_BUILD_BAREBOXENV_CMDS)
-	$$(TARGET_MAKE_ENV) $$(MAKE) $$($(1)_MAKE_FLAGS) -C $$(@D)
+	$$($(1)_MAKE_ENV) $$(MAKE) $$($(1)_MAKE_FLAGS) -C $$(@D)
 	$$($(1)_BUILD_CUSTOM_ENV)
 endef
 
@@ -137,6 +144,11 @@ define $(1)_INSTALL_IMAGES_CMDS
 	fi
 	$$($(1)_INSTALL_CUSTOM_ENV)
 endef
+
+# Starting with barebox v2020.09.0, the kconfig used calls the
+# cross-compiler to check its capabilities. So we need the
+# toolchain before we can call the configurators.
+$(1)_KCONFIG_DEPENDENCIES += toolchain
 
 ifeq ($$(BR2_TARGET_$(1)_BAREBOXENV),y)
 define $(1)_INSTALL_TARGET_CMDS

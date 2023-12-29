@@ -4,13 +4,15 @@
 #
 ################################################################################
 
-MOSQUITTO_VERSION = 2.0.2
+MOSQUITTO_VERSION = 2.0.15
 MOSQUITTO_SITE = https://mosquitto.org/files/source
 MOSQUITTO_LICENSE = EPL-2.0 or EDLv1.0
 MOSQUITTO_LICENSE_FILES = LICENSE.txt epl-v20 edl-v10
+MOSQUITTO_CPE_ID_VENDOR = eclipse
 MOSQUITTO_INSTALL_STAGING = YES
 
 MOSQUITTO_MAKE_OPTS = \
+	CLIENT_STATIC_LDADD="$(MOSQUITTO_STATIC_LIBS)" \
 	UNAME=Linux \
 	STRIP=true \
 	prefix=/usr \
@@ -50,9 +52,8 @@ endif
 
 ifeq ($(BR2_PACKAGE_OPENSSL),y)
 MOSQUITTO_DEPENDENCIES += host-pkgconf openssl
-MOSQUITTO_MAKE_OPTS += \
-	WITH_TLS=yes \
-	CLIENT_STATIC_LDADD="`$(PKG_CONFIG_HOST_BINARY) --libs openssl`"
+MOSQUITTO_MAKE_OPTS += WITH_TLS=yes
+MOSQUITTO_STATIC_LIBS += `$(PKG_CONFIG_HOST_BINARY) --libs openssl`
 else
 MOSQUITTO_MAKE_OPTS += WITH_TLS=no
 endif
@@ -60,6 +61,7 @@ endif
 ifeq ($(BR2_PACKAGE_CJSON),y)
 MOSQUITTO_DEPENDENCIES += cjson
 MOSQUITTO_MAKE_OPTS += WITH_CJSON=yes
+MOSQUITTO_STATIC_LIBS += -lcjson
 else
 MOSQUITTO_MAKE_OPTS += WITH_CJSON=no
 endif
@@ -122,7 +124,7 @@ define MOSQUITTO_INSTALL_INIT_SYSTEMD
 endef
 
 define MOSQUITTO_USERS
-	mosquitto -1 nobody -1 * - - - Mosquitto user
+	mosquitto -1 mosquitto -1 * - - - Mosquitto user
 endef
 endif
 

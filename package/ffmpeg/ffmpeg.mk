@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-FFMPEG_VERSION = 4.3.1
+FFMPEG_VERSION = 4.4.4
 FFMPEG_SOURCE = ffmpeg-$(FFMPEG_VERSION).tar.xz
-FFMPEG_SITE = http://ffmpeg.org/releases
+FFMPEG_SITE = https://ffmpeg.org/releases
 FFMPEG_INSTALL_STAGING = YES
 
 FFMPEG_LICENSE = LGPL-2.1+, libjpeg license
@@ -15,6 +15,8 @@ ifeq ($(BR2_PACKAGE_FFMPEG_GPL),y)
 FFMPEG_LICENSE += and GPL-2.0+
 FFMPEG_LICENSE_FILES += COPYING.GPLv2
 endif
+
+FFMPEG_CPE_ID_VENDOR = ffmpeg
 
 FFMPEG_CONF_OPTS = \
 	--prefix=/usr \
@@ -366,13 +368,6 @@ else
 FFMPEG_CONF_OPTS += --disable-libtheora
 endif
 
-ifeq ($(BR2_PACKAGE_WAVPACK),y)
-FFMPEG_CONF_OPTS += --enable-libwavpack
-FFMPEG_DEPENDENCIES += wavpack
-else
-FFMPEG_CONF_OPTS += --disable-libwavpack
-endif
-
 ifeq ($(BR2_PACKAGE_LIBICONV),y)
 FFMPEG_CONF_OPTS += --enable-iconv
 FFMPEG_DEPENDENCIES += libiconv
@@ -512,13 +507,15 @@ else
 FFMPEG_CONF_OPTS += --enable-mipsfpu
 endif
 
-# Fix build failure on "addi opcode not supported"
-ifeq ($(BR2_mips_32r6)$(BR2_mips_64r6),y)
+# Fix build failure on several missing assembly instructions
 FFMPEG_CONF_OPTS += --disable-asm
-endif
 endif # MIPS
 
-ifeq ($(BR2_POWERPC_CPU_HAS_ALTIVEC),y)
+ifeq ($(BR2_POWERPC_CPU_HAS_ALTIVEC):$(BR2_powerpc64le),y:)
+FFMPEG_CONF_OPTS += --enable-altivec
+else ifeq ($(BR2_POWERPC_CPU_HAS_VSX):$(BR2_powerpc64le),y:y)
+# On LE, ffmpeg AltiVec support needs VSX intrinsics, and VSX
+# is an extension to AltiVec.
 FFMPEG_CONF_OPTS += --enable-altivec
 else
 FFMPEG_CONF_OPTS += --disable-altivec
